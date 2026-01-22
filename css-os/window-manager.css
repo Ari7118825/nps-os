@@ -1,0 +1,48 @@
+:root {
+    --win-bg: rgba(255, 255, 255, 0.85);
+    --win-border: rgba(255, 255, 255, 0.3);
+    --title-bar: #f1f1f1;
+    --accent: #0078d7;
+}
+
+#desktop {
+    width: 100vw; height: 100vh;
+    background: linear-gradient(135deg, #1e3a8a, #4c1d95);
+    position: relative; overflow: hidden;
+}
+
+.window {
+    position: absolute;
+    background: var(--win-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--win-border);
+    border-radius: 8px;
+    display: flex; flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.title-bar {
+    padding: 10px 14px;
+    display: flex; justify-content: space-between;
+    background: var(--title-bar);
+    border-radius: 8px 8px 0 0;
+    cursor: default; user-select: none;
+}
+
+.controls button {
+    border: none; background: none; margin-left: 8px;
+    cursor: pointer; font-size: 16px; border-radius: 4px;
+}
+
+.controls button:hover { background: rgba(0,0,0,0.1); }
+.controls .close:hover { background: #ff5f57; color: white; }
+
+.window-body { padding: 20px; flex: 1; overflow: auto; }
+
+/* Edge Resizers */
+.resizer { position: absolute; background: transparent; }
+.resizer.r { top: 0; right: -3px; width: 6px; height: 100%; cursor: e-resize; }
+.resizer.l { top: 0; left: -3px; width: 6px; height: 100%; cursor: w-resize; }
+.resizer.b { bottom: -3px; left: 0; width: 100%; height: 6px; cursor: s-resize; }
+.resizer.t { top: -3px; left: 0; width: 100%; height: 6px; cursor: n-resize; }
+.resizer.rb { bottom: -5px; right: -5px; width: 10px; height: 10px; cursor: se-resize; }

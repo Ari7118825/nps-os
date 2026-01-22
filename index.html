@@ -2,11 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebOS - Static</title>
+    <title>WebOS</title>
     <link rel="stylesheet" href="./style-os/window-manager.css">
+    <style>
+        body { background: #0f172a; margin: 0; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        #loader { text-align: center; font-family: sans-serif; transition: opacity 0.5s; }
+        .bar-bg { width: 200px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 10px; overflow: hidden; }
+        .bar-fill { width: 0%; height: 100%; background: #3b82f6; transition: width 0.3s; }
+    </style>
 </head>
 <body>
-    <script type="module" src="./js-os/window-manager.js"></script>
+    <div id="loader">
+        <div>Booting WebOS...</div>
+        <div class="bar-bg"><div id="fill" class="bar-fill"></div></div>
+    </div>
+    <div id="app"></div>
+
+    <script type="module">
+        // Manual progress bar simulation for static hosting
+        const fill = document.getElementById('fill');
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 30;
+            if (progress > 100) progress = 100;
+            fill.style.width = progress + '%';
+            if (progress === 100) clearInterval(interval);
+        }, 100);
+
+        import './js-os/window-manager.js';
+    </script>
 </body>
 </html>

@@ -1,0 +1,5 @@
+{
+    "name": "File Browser",
+    "icon": "apps/file_browser/icon.png",
+    "exec": "root/apps/file_browser.app"
+}

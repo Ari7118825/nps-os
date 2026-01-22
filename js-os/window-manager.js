@@ -4,13 +4,12 @@ import htm from 'https://esm.sh/htm';
 
 const html = htm.bind(h);
 
-const Window = ({ win, onClose, onFocus }) => {
+const Window = ({ win, onClose, onFocus, onMinimize }) => {
     const [isMax, setIsMax] = useState(false);
-    const [isMin, setIsMin] = useState(false);
-    const [state, setState] = useState({ x: win.x, y: win.y, w: 400, h: 250 });
+    const [state, setState] = useState({ x: win.x, y: win.y, w: 450, h: 300 });
 
     const startAction = (e, type) => {
-        if (isMax) return; // Disable dragging/resizing when maximized
+        if (isMax) return;
         e.preventDefault();
         onFocus();
         const startX = e.clientX, startY = e.clientY;
@@ -35,20 +34,25 @@ const Window = ({ win, onClose, onFocus }) => {
     };
 
     return html`
-        <div class="window ${isMax ? 'is-max' : ''} ${isMin ? 'is-min' : ''}" 
+        <div class="window ${isMax ? 'is-max' : ''} ${win.minimized ? 'is-min' : ''}" 
              style="left: ${state.x}px; top: ${state.y}px; width: ${state.w}px; height: ${state.h}px; z-index: ${win.z}"
              onMouseDown=${onFocus}>
             <div class="title-bar" onMouseDown=${(e) => startAction(e, 'drag')}>
-                <span>${win.title}</span>
+                <div class="title-left">
+                    <img src="./images/${win.icon}" class="title-icon" />
+                    <span>${win.title}</span>
+                </div>
                 <div class="controls">
-                    <button class="min" onClick=${(e) => { e.stopPropagation(); setIsMin(!isMin); }}></button>
-                    <button class="max" onClick=${(e) => { e.stopPropagation(); setIsMax(!isMax); setIsMin(false); }}></button>
+                    <button class="min" onClick=${(e) => { e.stopPropagation(); onMinimize(); }}></button>
+                    <button class="max" onClick=${(e) => { e.stopPropagation(); setIsMax(!isMax); }}></button>
                     <button class="close" onClick=${onClose}></button>
                 </div>
             </div>
-            ${!isMin && html`<div class="window-body">This is a window body.</div>`}
+            <div class="window-body">
+                <p>Hello! I am ${win.title}.</p>
+            </div>
             
-            ${!isMax && !isMin && html`
+            ${!isMax && html`
                 <div class="resizer t" onMouseDown=${(e) => startAction(e, 't')}></div>
                 <div class="resizer b" onMouseDown=${(e) => startAction(e, 'b')}></div>
                 <div class="resizer l" onMouseDown=${(e) => startAction(e, 'l')}></div>
@@ -63,27 +67,66 @@ const App = () => {
     const [windows, setWindows] = useState([]);
     const [z, setZ] = useState(100);
 
-    // Hide the loader once Preact starts
     useEffect(() => {
         const loader = document.getElementById('loader');
-        if (loader) loader.style.opacity = '0';
-        setTimeout(() => loader && loader.remove(), 500);
+        if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 500);
+        }
     }, []);
 
     const spawn = () => {
         const id = Date.now();
-        setWindows([...windows, { id, title: `Window ${windows.length + 1}`, x: 50 + (windows.length * 20), y: 50 + (windows.length * 20), z: z + 1 }]);
+        const newWin = { 
+            id, 
+            title: `App ${windows.length + 1}`, 
+            icon: 'icon.png', // Ensure this file exists in /images/
+            x: 100 + (windows.length * 25), 
+            y: 100 + (windows.length * 25), 
+            z: z + 1,
+            minimized: false 
+        };
+        setWindows([...windows, newWin]);
+        setZ(z + 1);
+    };
+
+    const toggleMinimize = (id) => {
+        setWindows(windows.map(w => {
+            if (w.id === id) {
+                const nextMin = !w.minimized;
+                // If we are un-minimizing, bring to front
+                return { ...w, minimized: nextMin, z: nextMin ? w.z : z + 1 };
+            }
+            return w;
+        }));
         setZ(z + 1);
     };
 
     return html`
         <div id="desktop">
             <button class="open-btn" onClick=${spawn}>Launch App</button>
+
             ${windows.map(win => html`
-                <${Window} key=${win.id} win=${win} 
+                <${Window} 
+                    key=${win.id} 
+                    win=${win} 
                     onFocus=${() => { setZ(z+1); win.z = z+1; }} 
-                    onClose=${() => setWindows(windows.filter(w => w.id !== win.id))} />
+                    onMinimize=${() => toggleMinimize(win.id)}
+                    onClose=${() => setWindows(windows.filter(w => w.id !== win.id))} 
+                />
             `)}
+
+            <div class="taskbar">
+                ${windows.map(win => html`
+                    <img 
+                        src="./images/${win.icon}" 
+                        class="taskbar-icon" 
+                        title="${win.title}"
+                        onClick=${() => toggleMinimize(win.id)} 
+                        style="border-bottom: ${win.minimized ? 'none' : '2px solid #3b82f6'}"
+                    />
+                `)}
+            </div>
         </div>
     `;
 };

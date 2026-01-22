@@ -1,16 +1,18 @@
-import { html } from '../../js-os/window-manager.js';
+import { h } from 'https://esm.sh/preact';
+import htm from 'https://esm.sh/htm';
+const html = htm.bind(h);
 
-export function init() {
-    const content = html`
-        <div style="padding: 20px; font-family: sans-serif;">
-            <h3>File Explorer</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div style="border: 1px solid #ddd; padding: 10px;">📁 Documents</div>
-                <div style="border: 1px solid #ddd; padding: 10px;">📁 Downloads</div>
-                <div style="border: 1px solid #ddd; padding: 10px;">📁 Desktop</div>
+export default function FileBrowser() {
+    const folders = ['home', 'downloads', 'documents', 'desktop'];
+    
+    return html`
+        <div class="file-browser">
+            <div class="sidebar">
+                ${folders.map(f => html`<div class="nav-item">📁 ${f}</div>`)}
+            </div>
+            <div class="main-view">
+                <div class="file-icon">📄 readme.txt</div>
             </div>
         </div>
     `;
-
-    window.wm.open("File Browser", "apps/file_browser/icon.png", content);
 }

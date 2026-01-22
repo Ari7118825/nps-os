@@ -1,95 +1,112 @@
 import { h, render } from 'https://esm.sh/preact';
-import { useState, useEffect, useRef } from 'https://esm.sh/preact/hooks';
+import { useState, useCallback } from 'https://esm.sh/preact/hooks';
 import htm from 'https://esm.sh/htm';
 
 const html = htm.bind(h);
 
-const Window = ({ id, title, content, onClose, zIndex, onFocus }) => {
-    const [pos, setPos] = useState({ x: 100 + (id * 20), y: 100 + (id * 20) });
-    const [size, setSize] = useState({ w: 400, h: 300 });
-    const winRef = useRef(null);
+const Window = ({ win, onClose, onFocus }) => {
+    const [state, setState] = useState({
+        x: win.x, y: win.y, w: 400, h: 250
+    });
 
-    // dragging logic
-    const handleDrag = (e) => {
-        onFocus();
-        const startX = e.clientX - pos.x;
-        const startY = e.clientY - pos.y;
-        
-        const move = (me) => {
-            setPos({ x: me.clientX - startX, y: me.clientY - startY });
-        };
-        const up = () => {
-            window.removeEventListener('mousemove', move);
-            window.removeEventListener('mouseup', up);
-        };
-        window.addEventListener('mousemove', move);
-        window.addEventListener('mouseup', up);
-    };
+    // Unified handler for dragging and resizing
+    const startAction = (e, type) => {
+        e.preventDefault();
+        onFocus(); // Bring to front
 
-    // simplified resize logic for the right edge
-    const handleResize = (e, direction) => {
-        e.stopPropagation();
-        const startW = size.w;
         const startX = e.clientX;
+        const startY = e.clientY;
+        const startW = state.w;
+        const startH = state.h;
+        const startPosX = state.x;
+        const startPosY = state.y;
 
-        const move = (me) => {
-            if(direction === 'r') setSize(s => ({ ...s, w: startW + (me.clientX - startX) }));
+        const onMouseMove = (moveE) => {
+            const dx = moveE.clientX - startX;
+            const dy = moveE.clientY - startY;
+
+            if (type === 'drag') {
+                setState(prev => ({ ...prev, x: startPosX + dx, y: startPosY + dy }));
+            } else if (type === 'r') {
+                setState(prev => ({ ...prev, w: startW + dx }));
+            } else if (type === 'l') {
+                setState(prev => ({ ...prev, x: startPosX + dx, w: startW - dx }));
+            } else if (type === 'b') {
+                setState(prev => ({ ...prev, h: startH + dy }));
+            } else if (type === 't') {
+                setState(prev => ({ ...prev, y: startPosY + dy, h: startH - dy }));
+            } else if (type === 'corner') {
+                setState(prev => ({ ...prev, w: startW + dx, h: startH + dy }));
+            }
         };
-        const up = () => {
-            window.removeEventListener('mousemove', move);
-            window.removeEventListener('mouseup', up);
+
+        const onMouseUp = () => {
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
         };
-        window.addEventListener('mousemove', move);
-        window.addEventListener('mouseup', up);
+
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
     };
 
     return html`
-        <div class="window" style="left: ${pos.x}px; top: ${pos.y}px; width: ${size.w}px; height: ${size.h}px; z-index: ${zIndex}" onMouseDown=${onFocus}>
-            <div class="title-bar" onMouseDown=${handleDrag}>
-                <span>${title}</span>
+        <div class="window" style="left: ${state.x}px; top: ${state.y}px; width: ${state.w}px; height: ${state.h}px; z-index: ${win.z}">
+            <div class="title-bar" onMouseDown=${(e) => startAction(e, 'drag')}>
+                <span>${win.title}</span>
                 <div class="controls">
-                    <button onClick=${onClose} class="close">×</button>
+                    <button class="min"></button>
+                    <button class="max"></button>
+                    <button class="close" onClick=${onClose}></button>
                 </div>
             </div>
-            <div class="window-body">${content}</div>
-            <div class="resizer r" onMouseDown=${(e) => handleResize(e, 'r')}></div>
-            <div class="resizer b" onMouseDown=${(e) => handleResize(e, 'b')}></div>
-            <div class="resizer rb" onMouseDown=${(e) => handleResize(e, 'rb')}></div>
+            <div class="window-body">
+                <p>This is a window.</p>
+            </div>
+            
+            <div class="resizer t" onMouseDown=${(e) => startAction(e, 't')}></div>
+            <div class="resizer b" onMouseDown=${(e) => startAction(e, 'b')}></div>
+            <div class="resizer l" onMouseDown=${(e) => startAction(e, 'l')}></div>
+            <div class="resizer r" onMouseDown=${(e) => startAction(e, 'r')}></div>
+            <div class="resizer corner" onMouseDown=${(e) => startAction(e, 'corner')}></div>
         </div>
     `;
 };
 
-const OS = () => {
+const App = () => {
     const [windows, setWindows] = useState([]);
-    const [topZ, setTopZ] = useState(100);
+    const [zIndexCounter, setZIndex] = useState(100);
 
-    const addWindow = () => {
+    const spawnWindow = () => {
         const id = Date.now();
-        setWindows([...windows, { id, title: `Window ${windows.length + 1}`, z: topZ }]);
-        setTopZ(topZ + 1);
+        const newWin = {
+            id,
+            title: `Window ${windows.length + 1}`,
+            x: 100 + (windows.length * 30),
+            y: 100 + (windows.length * 30),
+            z: zIndexCounter
+        };
+        setWindows([...windows, newWin]);
+        setZIndex(zIndexCounter + 1);
     };
 
     const focusWindow = (id) => {
-        setTopZ(topZ + 1);
-        setWindows(windows.map(w => w.id === id ? { ...w, z: topZ + 1 } : w));
+        setZIndex(zIndexCounter + 1);
+        setWindows(windows.map(w => w.id === id ? { ...w, z: zIndexCounter + 1 } : w));
     };
 
     return html`
         <div id="desktop">
-            <button onclick=${addWindow} style="margin: 20px; position: relative; z-index: 9999;">New Window</button>
+            <button class="open-btn" onClick=${spawnWindow}>+ New Window</button>
             ${windows.map(win => html`
                 <${Window} 
                     key=${win.id} 
-                    id=${win.id} 
-                    title=${win.title} 
-                    zIndex=${win.z}
+                    win=${win} 
                     onFocus=${() => focusWindow(win.id)}
-                    onClose=${() => setWindows(windows.filter(w => w.id !== win.id))}
-                    content="This is a window body message." 
+                    onClose=${() => setWindows(windows.filter(w => w.id !== win.id))} 
                 />
             `)}
         </div>
     `;
 };
 
-render(html`<${OS} />`, document.body);
+render(html`<${App} />`, document.body);

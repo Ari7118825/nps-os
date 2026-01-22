@@ -1,5 +1,1 @@
-{
-    "name": "File Browser",
-    "icon": "apps/file_browser/icon.png",
-    "exec": "root/apps/file_browser.js"
-}
+{ "name": "Files", "app": "file_browser", "icon": "📁" }

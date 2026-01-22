@@ -1,9 +1,14 @@
-// A simple wrapper for localStorage to act as a File System
 export const FS = {
-    read: (path) => JSON.parse(localStorage.getItem(`root${path}`)) || "File not found",
-    write: (path, content) => localStorage.setItem(`root${path}`, JSON.stringify(content)),
+    write: (path, data) => {
+        localStorage.setItem(`os_fs_${path}`, JSON.stringify(data));
+    },
+    read: (path) => {
+        return JSON.parse(localStorage.getItem(`os_fs_${path}`));
+    },
     list: (dir) => {
-        // Logic to filter keys starting with dir
-        return Object.keys(localStorage).filter(k => k.startsWith(`root${dir}`));
+        const prefix = `os_fs_${dir}`;
+        return Object.keys(localStorage)
+            .filter(key => key.startsWith(prefix))
+            .map(key => key.replace(prefix, ''));
     }
 };

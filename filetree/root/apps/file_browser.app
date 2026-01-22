@@ -1,25 +1,16 @@
-export function init(wm) {
+import { html } from '../../js-os/window-manager.js';
+
+export function init() {
     const content = html`
-        <div class="file-explorer">
-            <div class="sidebar">
-                <div>Favorites</div>
-                <div style="padding-left:10px; font-size: 0.8em; opacity: 0.7;">Desktop</div>
-                <div style="padding-left:10px; font-size: 0.8em; opacity: 0.7;">Documents</div>
-            </div>
-            <div class="main-view">
-                <p>Browsing: /root/home/</p>
-                <div class="file-list">
-                    <span>Folder: Downloads</span>
-                    <span>Folder: Documents</span>
-                </div>
+        <div style="padding: 20px; font-family: sans-serif;">
+            <h3>File Explorer</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="border: 1px solid #ddd; padding: 10px;">📁 Documents</div>
+                <div style="border: 1px solid #ddd; padding: 10px;">📁 Downloads</div>
+                <div style="border: 1px solid #ddd; padding: 10px;">📁 Desktop</div>
             </div>
         </div>
     `;
 
-    wm.open("File Browser", "apps/file_browser/icon.png", content);
+    window.wm.open("File Browser", "apps/file_browser/icon.png", content);
 }
-
-// To allow the app to use the same html template engine
-import htm from 'https://esm.sh/htm';
-import { h } from 'https://esm.sh/preact@10.19.2';
-const html = htm.bind(h);

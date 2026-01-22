@@ -3,16 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebOS</title>
-    <link rel="stylesheet" href="./style-os/window-manager.css">
-    <link rel="stylesheet" href="./style-os/desktop-manager.css">
-    <style>
-        body { margin: 0; background: #000; overflow: hidden; }
-        #app { width: 100vw; height: 100vh; }
-    </style>
+    <title>JS-OS Static</title>
+    <link rel="stylesheet" href="style-os/desktop-manager.css">
+    <link rel="stylesheet" href="style-os/window-manager.css">
 </head>
 <body>
-    <div id="app"></div>
-    <script type="module" src="./js-os/desktop-manager.js"></script>
+    <div id="os-root"></div>
+    <script type="module">
+        import { h, render } from 'https://esm.sh/preact';
+        import { useState, useEffect } from 'https://esm.sh/preact/hooks';
+        import htm from 'https://esm.sh/htm';
+        import DesktopManager from './js-os/desktop-manager.js';
+
+        const html = htm.bind(h);
+
+        function OS() {
+            return html`<${DesktopManager} />`;
+        }
+
+        render(html`<${OS} />`, document.getElementById('os-root'));
+    </script>
 </body>
 </html>
